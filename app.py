@@ -61,8 +61,9 @@ URL_REGEX = re.compile(
     re.IGNORECASE,
 )
 
-# Slug: apenas alfanumérico
-SLUG_REGEX = re.compile(r"^[A-Za-z0-9]{1,10}$")
+# Slug: alfanumérico + hífens, até 30 chars
+SLUG_REGEX = re.compile(r"^[A-Za-z0-9\-]{1,30}$")
+CUSTOM_SLUG_REGEX = re.compile(r"^[A-Za-z0-9\-]{3,30}$")
 
 ALPHABET = string.ascii_letters + string.digits
 
@@ -337,6 +338,7 @@ def shorten():
 
     payload = request.get_json(silent=True) or {}
     raw_url = payload.get("original_url", "")
+    custom_slug = payload.get("custom_slug", "").strip()
 
     # Rejeita payloads gigantes (já coberto por MAX_CONTENT_LENGTH, mas dupla checagem)
     if len(str(raw_url)) > 2048:
@@ -346,11 +348,20 @@ def shorten():
     if not original_url:
         return _safe_json_error("URL inválida. Informe um link público válido.", 400)
 
-    try:
-        short_code = generate_unique_slug()
-    except RuntimeError as exc:
-        logger.error("Falha ao gerar slug: %s", exc)
-        return _safe_json_error("Erro ao processar. Tente novamente.", 500)
+    if custom_slug:
+        if not CUSTOM_SLUG_REGEX.match(custom_slug):
+            return _safe_json_error("O final personalizado deve ter entre 3 e 30 caracteres, e apenas letras, números ou hífens.", 400)
+        
+        if db.collection(COLLECTION).document(custom_slug).get().exists:
+            return _safe_json_error("Esse final personalizado já está em uso. Tente outro.", 400)
+            
+        short_code = custom_slug
+    else:
+        try:
+            short_code = generate_unique_slug()
+        except RuntimeError as exc:
+            logger.error("Falha ao gerar slug: %s", exc)
+            return _safe_json_error("Erro ao processar. Tente novamente.", 500)
 
     db.collection(COLLECTION).document(short_code).set(
         {
@@ -369,7 +380,7 @@ def shorten():
             {
                 "original_url": original_url,
                 "short_code": short_code,
-                "short_url": f"{BASE_URL.rstrip('/')}/{short_code}",
+                "short_url": f"{request.host_url}{short_code}",
             }
         ),
         201,
@@ -395,7 +406,7 @@ def stats(short_code: str):
             "original_url": data.get("original_url"),
             "clicks_count": data.get("clicks_count", 0),
             "created_at": created_at.isoformat() if created_at else None,
-            "short_url": f"{BASE_URL.rstrip('/')}/{short_code}",
+            "short_url": f"{request.host_url}{short_code}",
         }
     )
 
