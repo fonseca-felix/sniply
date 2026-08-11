@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snip.ly — Encurtador de links moderno</title>
+    <meta
+      name="description"
+      content="Encurte links longos em segundos, copie com um clique e acompanhe os cliques com o Snip.ly."
+    />
+
+    <!-- Tema: aplica antes da renderização para evitar flash -->
+    <script>
+      if (
+        localStorage.getItem("sniply-theme") === "dark" ||
+        (!localStorage.getItem("sniply-theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50:  "#F5F3FF",
+                100: "#EDE9FE",
+                200: "#DDD6FE",
+                400: "#A78BFA",
+                500: "#8B5CF6",
+                600: "#7C3AED",
+                700: "#6D28D9",
+                800: "#5B21B6",
+              },
+              surface: "#F8F7FF",
+            },
+            fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+            keyframes: {
+              "fade-up": {
+                "0%":   { opacity: "0", transform: "translateY(16px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              "scale-in": {
+                "0%":   { opacity: "0", transform: "scale(0.95)" },
+                "100%": { opacity: "1", transform: "scale(1)" },
+              },
+            },
+            animation: {
+              "fade-up":  "fade-up 0.5s ease-out both",
+              "scale-in": "scale-in 0.35s ease-out both",
+            },
+          },
+        },
+      };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Delay utilities para animar elementos em sequência */
+      .delay-100 { animation-delay: 100ms }
+      .delay-200 { animation-delay: 200ms }
+      .delay-300 { animation-delay: 300ms }
+      .delay-400 { animation-delay: 400ms }
+      .delay-500 { animation-delay: 500ms }
+
+      /* Gradiente animado no logo */
+      @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50%       { background-position: 100% 50%; }
+      }
+      .logo-gradient {
+        background: linear-gradient(135deg, #7C3AED, #a855f7, #6D28D9);
+        background-size: 200% 200%;
+        animation: gradient-shift 4s ease infinite;
+      }
+
+      /* Pulse suave no badge hero */
+      @keyframes pulse-soft {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,.3); }
+        50%       { box-shadow: 0 0 0 8px rgba(124,58,237,0); }
+      }
+      .badge-pulse { animation: pulse-soft 3s ease infinite; }
+
+      /* Anúncio: limita largura e centraliza */
+      .ad-slot {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+    </style>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7418368057608967"
+      crossorigin="anonymous"></script>
+  </head>
+
+  <body
+    class="min-h-screen bg-surface text-slate-900 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100"
+  >
+    <!-- ═══════════════════════════════════════
+         HEADER
+    ════════════════════════════════════════ -->
+    <header class="mx-auto flex max-w-5xl items-center justify-between px-5 py-5 sm:px-8">
+      <a href="/" class="flex items-center gap-3 group">
+        <span
+          class="logo-gradient flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg shadow-brand-600/30 transition-transform duration-200 group-hover:scale-105"
+        >
+          <!-- Link icon -->
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5"
+            />
+          </svg>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">
+          Snip<span class="text-brand-600 dark:text-brand-400">.ly</span>
+        </span>
+      </a>
+
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="Alternar tema"
+        class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-600 dark:hover:bg-brand-600/10 dark:hover:text-brand-400"
+      >
+        <!-- Sol -->
+        <svg id="icon-sun" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+        <!-- Lua -->
+        <svg id="icon-moon" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- ═══════════════════════════════════════
+         MAIN
+    ════════════════════════════════════════ -->
+    <main class="mx-auto max-w-3xl px-5 pb-20 pt-8 sm:px-8 sm:pt-14">
+
+      <!-- Hero -->
+      <section class="text-center">
+        <span
+          class="badge-pulse inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-4 py-1.5 text-xs font-semibold text-brand-700 dark:bg-brand-600/15 dark:text-brand-400 animate-fade-up"
+        >
+          <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
+          Rápido, gratuito e sem cadastro
+        </span>
+
+        <h1 class="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-5xl animate-fade-up delay-100">
+          Links longos viram<br />
+          <span class="text-brand-600 dark:text-brand-400">links memoráveis</span>
+        </h1>
+
+        <p class="mx-auto mt-4 max-w-md text-base text-slate-500 dark:text-slate-400 sm:text-lg animate-fade-up delay-200">
+          Cole qualquer URL abaixo e obtenha um link curto em segundos.
+        </p>
+      </section>
+
+      <!-- ── Anúncio 1: Banner entre hero e card principal ── -->
+      <div class="mt-6 animate-fade-up delay-200" aria-label="Publicidade">
+        <ins class="adsbygoogle ad-slot"
+             style="display:block"
+             data-ad-client="ca-pub-7418368057608967"
+             data-ad-slot="7715759905"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+
+      <!-- Card principal -->
+      <section
+        class="mt-10 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 sm:p-7 animate-fade-up delay-300"
+      >
+        <form id="shorten-form" class="flex flex-col gap-3 sm:flex-row">
+          <!-- Input -->
+          <div class="relative flex-1">
+            <svg
+              class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5" />
+            </svg>
+            <input
+              id="url-input"
+              name="original_url"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              placeholder="Cole seu link longo aqui..."
+              class="w-full rounded-xl border border-slate-200 bg-surface py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-500"
+            />
+          </div>
+
+          <!-- Botão encurtar -->
+          <button
+            id="submit-btn"
+            type="submit"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-all duration-200 hover:bg-brand-700 hover:shadow-brand-700/40 focus:outline-none focus:ring-4 focus:ring-brand-500/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span id="submit-label">Encurtar</span>
+            <svg id="spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          </button>
+        </form>
+
+        <!-- Mensagem de erro -->
+        <div id="error-msg" class="mt-3 hidden items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 dark:border-red-800/50 dark:bg-red-900/20 dark:text-red-400">
+          <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path stroke-linecap="round" d="M12 8v4m0 4h.01" />
+          </svg>
+          <span id="error-text"></span>
+        </div>
+
+        <!-- Card de resultado -->
+        <div id="result-card" class="mt-6 hidden animate-scale-in">
+          <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-600/30 dark:bg-brand-600/10 sm:p-5">
+            <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand-700 dark:text-brand-400">
+              <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              Link encurtado com sucesso
+            </p>
+
+            <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
+                id="short-link"
+                href="#"
+                target="_blank"
+                rel="noopener"
+                class="flex-1 truncate text-lg font-bold text-brand-700 underline-offset-4 transition-opacity hover:opacity-80 hover:underline dark:text-brand-400"
+              ></a>
+
+              <div class="flex gap-2">
+                <!-- Botão Copiar -->
+                <button
+                  id="copy-btn"
+                  type="button"
+                  class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-brand-700 active:scale-95 sm:flex-none"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round" />
+                  </svg>
+                  <span id="copy-label">Copiar</span>
+                </button>
+
+                <!-- Botão QR Code (desativado) -->
+                <button
+                  id="qr-btn"
+                  type="button"
+                  disabled
+                  title="Em breve"
+                  class="inline-flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400 opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 sm:flex-none"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="3"  y="3"  width="7" height="7" rx="1" />
+                    <rect x="14" y="3"  width="7" height="7" rx="1" />
+                    <rect x="3"  y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01" stroke-linecap="round" />
+                  </svg>
+                  QR Code
+                </button>
+              </div>
+            </div>
+
+            <p class="mt-3 truncate text-xs text-slate-500 dark:text-slate-400">
+              Original: <span id="original-url" class="font-medium"></span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cards de features -->
+      <section class="mt-8 grid gap-4 sm:grid-cols-3 animate-fade-up delay-400">
+        <!-- Feature 1 -->
+        <div class="group rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700/50">
+          <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-600/20 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold">Instantâneo</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Slug único de 6 caracteres gerado na hora.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="group rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700/50">
+          <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-600/20 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold">Com métricas</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Cada clique é contabilizado no Firestore.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="group rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700/50">
+          <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-600/20 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold">Copiar em 1 clique</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Link copiado direto para sua área de transferência.</p>
+        </div>
+      </section>
+
+      <!-- ── Anúncio 2: Banner após os feature cards ── -->
+      <div class="mt-8 animate-fade-up delay-500" aria-label="Publicidade">
+        <ins class="adsbygoogle ad-slot"
+             style="display:block"
+             data-ad-client="ca-pub-7418368057608967"
+             data-ad-slot="7715759905"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════
+         SCRIPTS
+    ════════════════════════════════════════ -->
+    <script>
+      // ── Tema ──────────────────────────────
+      const root = document.documentElement;
+      const sun  = document.getElementById("icon-sun");
+      const moon = document.getElementById("icon-moon");
+
+      function syncThemeIcons() {
+        const dark = root.classList.contains("dark");
+        sun.classList.toggle("hidden", !dark);
+        moon.classList.toggle("hidden", dark);
+      }
+      syncThemeIcons();
+
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        root.classList.toggle("dark");
+        localStorage.setItem(
+          "sniply-theme",
+          root.classList.contains("dark") ? "dark" : "light"
+        );
+        syncThemeIcons();
+      });
+
+      // ── Encurtar ──────────────────────────
+      const form       = document.getElementById("shorten-form");
+      const input      = document.getElementById("url-input");
+      const btn        = document.getElementById("submit-btn");
+      const label      = document.getElementById("submit-label");
+      const spinner    = document.getElementById("spinner");
+      const errorBox   = document.getElementById("error-msg");
+      const errorText  = document.getElementById("error-text");
+      const resultCard = document.getElementById("result-card");
+      const shortLink  = document.getElementById("short-link");
+      const originalUrl = document.getElementById("original-url");
+      const copyBtn    = document.getElementById("copy-btn");
+      const copyLabel  = document.getElementById("copy-label");
+
+      function showError(message) {
+        errorText.textContent = message;
+        errorBox.classList.remove("hidden");
+        errorBox.classList.add("flex");
+      }
+
+      function hideError() {
+        errorBox.classList.add("hidden");
+        errorBox.classList.remove("flex");
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideError();
+
+        const value = input.value.trim();
+        if (!value) return showError("Cole um link para encurtar.");
+
+        btn.disabled = true;
+        label.textContent = "Encurtando...";
+        spinner.classList.remove("hidden");
+
+        try {
+          const res  = await fetch("/api/shorten", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ original_url: value }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Não foi possível encurtar o link.");
+
+          shortLink.textContent = data.short_url;
+          shortLink.href        = data.short_url;
+          originalUrl.textContent = data.original_url;
+
+          resultCard.classList.remove("hidden");
+          resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Encurtar";
+          spinner.classList.add("hidden");
+        }
+      });
+
+      // ── Copiar ────────────────────────────
+      copyBtn.addEventListener("click", async () => {
+        const text = shortLink.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const tmp = document.createElement("textarea");
+          tmp.value = text;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand("copy");
+          tmp.remove();
+        }
+        copyLabel.textContent = "Copiado!";
+        setTimeout(() => (copyLabel.textContent = "Copiar"), 2000);
+      });
+
+      // ── QR Code (desativado) ──────────────
+      // Botão com atributo `disabled` — nenhum listener necessário.
+    </script>
+  </body>
+</html>

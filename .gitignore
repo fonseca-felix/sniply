@@ -1,0 +1,51 @@
+# ============================================================
+#  Sniply — .gitignore
+# ============================================================
+
+# ----- Credenciais & Segredos -----
+.env
+.env.*
+!.env.example
+
+# Chaves de conta de serviço Firebase (TODOS os padrões)
+serviceAccountKey.json
+sniply-*.json
+*firebase-adminsdk*.json
+*.json
+!package.json
+!package-lock.json
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+ENV/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ----- IDEs & Editores -----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ----- Vercel -----
+.vercel/
+
+# ----- Logs -----
+*.log
+logs/

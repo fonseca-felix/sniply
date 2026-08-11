@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Bloqueia rotas de API para crawlers
+Disallow: /api/
+
+Sitemap: https://sniply-5399d.vercel.app/sitemap.xml

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snip.ly — Encurtador de links moderno</title>
+    <meta
+      name="description"
+      content="Encurte links longos em segundos, copie com um clique e gere QR Codes na hora com o Snip.ly."
+    />
+    <script>
+      // Aplica o tema antes da renderização para evitar flash.
+      if (
+        localStorage.getItem("sniply-theme") === "dark" ||
+        (!localStorage.getItem("sniply-theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#F5F3FF",
+                100: "#EDE9FE",
+                400: "#A78BFA",
+                500: "#8B5CF6",
+                600: "#7C3AED",
+                700: "#6D28D9",
+              },
+              surface: "#F8F9FA",
+            },
+            fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  </head>
+
+  <body
+    class="min-h-screen bg-surface text-slate-900 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100"
+  >
+    <!-- Header -->
+    <header class="mx-auto flex max-w-5xl items-center justify-between px-5 py-5 sm:px-8">
+      <a href="/" class="flex items-center gap-2.5">
+        <span
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-600/25"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5"
+            />
+          </svg>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">
+          Snip<span class="text-brand-600 dark:text-brand-400">.ly</span>
+        </span>
+      </a>
+
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="Alternar tema"
+        class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-brand-400"
+      >
+        <svg id="icon-sun" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4" />
+          <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+        <svg id="icon-moon" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+        </svg>
+      </button>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-8 sm:pt-16">
+      <!-- Hero -->
+      <section class="text-center">
+        <span
+          class="inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-600/15 dark:text-brand-400"
+        >
+          Rápido, gratuito e sem cadastro
+        </span>
+        <h1 class="mt-5 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+          Links longos viram
+          <span class="text-brand-600 dark:text-brand-400">links memoráveis</span>
+        </h1>
+        <p class="mx-auto mt-4 max-w-xl text-base text-slate-500 dark:text-slate-400 sm:text-lg">
+          Encurte qualquer URL em segundos, copie com um clique, gere QR Codes e acompanhe os cliques.
+        </p>
+      </section>
+
+      <!-- Card principal -->
+      <section
+        class="mt-10 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 sm:p-7"
+      >
+        <form id="shorten-form" class="flex flex-col gap-3 sm:flex-row">
+          <div class="relative flex-1">
+            <svg
+              class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5" />
+            </svg>
+            <input
+              id="url-input"
+              name="original_url"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              placeholder="Cole seu link longo aqui..."
+              class="w-full rounded-xl border border-slate-200 bg-surface py-3.5 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            />
+          </div>
+          <button
+            id="submit-btn"
+            type="submit"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span id="submit-label">Encurtar</span>
+            <svg id="spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          </button>
+        </form>
+
+        <p id="error-msg" class="mt-3 hidden text-sm font-medium text-red-500"></p>
+
+        <!-- Card de resultado -->
+        <div id="result-card" class="mt-6 hidden">
+          <div
+            class="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-600/30 dark:bg-brand-600/10 sm:p-5"
+          >
+            <p class="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-400">
+              Seu link encurtado
+            </p>
+            <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
+                id="short-link"
+                href="#"
+                target="_blank"
+                rel="noopener"
+                class="flex-1 truncate text-lg font-bold text-brand-700 underline-offset-4 hover:underline dark:text-brand-400"
+              ></a>
+              <div class="flex gap-2">
+                <button
+                  id="copy-btn"
+                  type="button"
+                  class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 sm:flex-none"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V5a2 2 0 012-2h10" stroke-linecap="round" />
+                  </svg>
+                  <span id="copy-label">Copiar</span>
+                </button>
+                <button
+                  id="qr-btn"
+                  type="button"
+                  class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-100 dark:border-brand-600/40 dark:bg-slate-900 dark:text-brand-400 dark:hover:bg-brand-600/15 sm:flex-none"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01" stroke-linecap="round" />
+                  </svg>
+                  QR Code
+                </button>
+              </div>
+            </div>
+
+            <p class="mt-3 truncate text-xs text-slate-500 dark:text-slate-400">
+              Original: <span id="original-url"></span>
+            </p>
+
+            <div id="qr-wrapper" class="mt-5 hidden flex-col items-center">
+              <div id="qrcode" class="rounded-xl bg-white p-4 shadow-sm"></div>
+              <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Aponte a câmera para abrir o link</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="mt-10 grid gap-4 sm:grid-cols-3">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h3 class="text-sm font-semibold">Instantâneo</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Slug único de 6 caracteres gerado na hora.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h3 class="text-sm font-semibold">Com métricas</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Cada clique é contabilizado no Firestore.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h3 class="text-sm font-semibold">QR Code</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Gere e compartilhe offline em um clique.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-400 dark:border-slate-800">
+      feito por fonseca-felix
+    </footer>
+
+    <script>
+      // Standalone: intercepta /api/shorten para demonstrar a interface sem backend.
+      const _fetch = window.fetch.bind(window);
+      window.fetch = async (url, opts) => {
+        if (typeof url === "string" && url.includes("/api/shorten")) {
+          const body = JSON.parse(opts.body);
+          let u = body.original_url.trim();
+          if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(u)) u = "https://" + u;
+          if (!/^https?:\/\/([\w-]+\.)+[A-Za-z]{2,}(:\d+)?(\/.*)?$/.test(u)) {
+            return new Response(JSON.stringify({ error: "URL inválida. Informe um link válido." }), { status: 400 });
+          }
+          const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          const slug = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+          await new Promise((r) => setTimeout(r, 400));
+          return new Response(JSON.stringify({ original_url: u, short_code: slug, short_url: "https://snip.ly/" + slug }), { status: 201 });
+        }
+        return _fetch(url, opts);
+      };
+    </script>
+    <script>
+      // ----- Tema -----
+      const root = document.documentElement;
+      const sun = document.getElementById("icon-sun");
+      const moon = document.getElementById("icon-moon");
+
+      function syncThemeIcons() {
+        const dark = root.classList.contains("dark");
+        sun.classList.toggle("hidden", !dark);
+        moon.classList.toggle("hidden", dark);
+      }
+      syncThemeIcons();
+
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        root.classList.toggle("dark");
+        localStorage.setItem("sniply-theme", root.classList.contains("dark") ? "dark" : "light");
+        syncThemeIcons();
+      });
+
+      // ----- Encurtar -----
+      const form = document.getElementById("shorten-form");
+      const input = document.getElementById("url-input");
+      const btn = document.getElementById("submit-btn");
+      const label = document.getElementById("submit-label");
+      const spinner = document.getElementById("spinner");
+      const errorMsg = document.getElementById("error-msg");
+      const resultCard = document.getElementById("result-card");
+      const shortLink = document.getElementById("short-link");
+      const originalUrl = document.getElementById("original-url");
+      const qrWrapper = document.getElementById("qr-wrapper");
+      const qrTarget = document.getElementById("qrcode");
+      const copyBtn = document.getElementById("copy-btn");
+      const copyLabel = document.getElementById("copy-label");
+
+      let qrInstance = null;
+
+      function showError(message) {
+        errorMsg.textContent = message;
+        errorMsg.classList.remove("hidden");
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorMsg.classList.add("hidden");
+
+        const value = input.value.trim();
+        if (!value) return showError("Cole um link para encurtar.");
+
+        btn.disabled = true;
+        label.textContent = "Encurtando...";
+        spinner.classList.remove("hidden");
+
+        try {
+          const response = await fetch("/api/shorten", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ original_url: value }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.error || "Não foi possível encurtar o link.");
+
+          shortLink.textContent = data.short_url;
+          shortLink.href = data.short_url;
+          originalUrl.textContent = data.original_url;
+
+          qrTarget.innerHTML = "";
+          qrInstance = null;
+          qrWrapper.classList.add("hidden");
+          qrWrapper.classList.remove("flex");
+
+          resultCard.classList.remove("hidden");
+          resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Encurtar";
+          spinner.classList.add("hidden");
+        }
+      });
+
+      // ----- Copiar -----
+      copyBtn.addEventListener("click", async () => {
+        const text = shortLink.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const tmp = document.createElement("textarea");
+          tmp.value = text;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand("copy");
+          tmp.remove();
+        }
+        copyLabel.textContent = "Copiado!";
+        setTimeout(() => (copyLabel.textContent = "Copiar"), 2000);
+      });
+
+      // ----- QR Code -----
+      document.getElementById("qr-btn").addEventListener("click", () => {
+        const isHidden = qrWrapper.classList.contains("hidden");
+        if (!isHidden) {
+          qrWrapper.classList.add("hidden");
+          qrWrapper.classList.remove("flex");
+          return;
+        }
+        if (!qrInstance) {
+          qrInstance = new QRCode(qrTarget, {
+            text: shortLink.textContent,
+            width: 180,
+            height: 180,
+            colorDark: "#7C3AED",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+        }
+        qrWrapper.classList.remove("hidden");
+        qrWrapper.classList.add("flex");
+      });
+    </script>
+  </body>
+</html>
